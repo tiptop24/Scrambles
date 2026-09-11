@@ -37,6 +37,16 @@ The app is also installable: a branded favicon/apple-touch-icon and a
 phone's home screen — a season runs 38 gameweeks, so a one-tap icon beats
 digging up the link in a group chat every week.
 
+### Ready for public traffic
+
+A viral loop only helps if the app survives being shared widely:
+
+- Pool creation and joining are rate-limited per client (`src/lib/rateLimit.ts`)
+  so a spam bot can't flood the database with junk pools/players.
+- `robots.txt` allows crawling the homepage for organic discovery but blocks
+  `/pool/*` — those links are shared privately by invite, not meant to be
+  indexed.
+
 ## Stack
 
 - **Next.js 16** (App Router) + React 19 + TypeScript
