@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 const title = "Scrambles — Premier League Pick 'Em";
@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   openGraph: { title, description, siteName: "Scrambles" },
   twitter: { card: "summary_large_image", title, description },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#37003c",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

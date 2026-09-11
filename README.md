@@ -32,6 +32,11 @@ than plain text ones. Set `NEXT_PUBLIC_SITE_URL` in production (see
 `.env.example`) so those images resolve to the real domain instead of
 `localhost`.
 
+The app is also installable: a branded favicon/apple-touch-icon and a
+`manifest.ts` (192/512 icons, standalone display) let players add it to their
+phone's home screen — a season runs 38 gameweeks, so a one-tap icon beats
+digging up the link in a group chat every week.
+
 ## Stack
 
 - **Next.js 16** (App Router) + React 19 + TypeScript
