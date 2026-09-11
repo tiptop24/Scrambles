@@ -11,6 +11,23 @@ No accounts, no passwords — create a pool, share the invite link, and everyone
 picks by name. Built to be shared in a group chat and played casually all
 season.
 
+### Built to spread
+
+Every moment worth bragging (or roasting) about has a one-tap share button
+(native share sheet on mobile, clipboard copy on desktop):
+
+- **Inviting friends** — from the pool header.
+- **Locking in a pick** — "Casey is riding with Liverpool in Gameweek 4..."
+- **Getting eliminated** — the highest-signal share in any survivor pool;
+  people share their eliminations to gloat about how far they got or to bait
+  a rematch.
+- **The admin's weekly recap** — a ready-to-paste "results are in" message
+  for the group chat after each gameweek locks.
+
+Pool links also carry per-pool Open Graph metadata, so a shared invite
+unfurls with the pool's own name and rules in iMessage/WhatsApp/Slack instead
+of a bare URL.
+
 ## Stack
 
 - **Next.js 16** (App Router) + React 19 + TypeScript

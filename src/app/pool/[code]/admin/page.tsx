@@ -4,10 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { PoolOverviewDTO, TeamDTO } from "@/lib/clientTypes";
+import { ShareButton } from "@/components/ShareButton";
+import { gameWeekRecapMessage } from "@/lib/shareText";
 
 interface FixtureRow {
   homeTeamId: string;
   awayTeamId: string;
+}
+
+interface RecapData {
+  gameWeekNumber: number;
+  survivors: string[];
+  eliminated: string[];
 }
 
 export default function AdminPage() {
@@ -15,6 +23,7 @@ export default function AdminPage() {
   const [overview, setOverview] = useState<PoolOverviewDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [recap, setRecap] = useState<RecapData | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/pools/${code}`);
@@ -44,6 +53,10 @@ export default function AdminPage() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
+      {recap && (
+        <RecapCard code={code} poolName={overview.pool.name} recap={recap} onDismiss={() => setRecap(null)} />
+      )}
+
       {seasonComplete ? (
         <section className="bg-white rounded-2xl border border-black/5 p-6 text-center text-black/60">
           Every gameweek has been played. Season&apos;s over — check the standings on the pool
@@ -66,7 +79,10 @@ export default function AdminPage() {
           busy={busy}
           setBusy={setBusy}
           setError={setError}
-          onDone={load}
+          onDone={(data) => {
+            setRecap({ gameWeekNumber: gw.number, survivors: data.survivors, eliminated: data.eliminated });
+            load();
+          }}
         />
       )}
 
@@ -76,6 +92,47 @@ export default function AdminPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+function RecapCard({
+  code,
+  poolName,
+  recap,
+  onDismiss,
+}: {
+  code: string;
+  poolName: string;
+  recap: { gameWeekNumber: number; survivors: string[]; eliminated: string[] };
+  onDismiss: () => void;
+}) {
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/pool/${code}` : "";
+
+  return (
+    <section className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="font-bold text-emerald-800">Gameweek {recap.gameWeekNumber} is locked!</h2>
+        <button onClick={onDismiss} className="text-emerald-700/50 text-xs shrink-0">
+          Dismiss
+        </button>
+      </div>
+      <p className="text-sm text-emerald-800/80 mt-1">
+        {recap.survivors.length > 0 && <>Survived: {recap.survivors.join(", ")}. </>}
+        {recap.eliminated.length > 0 && <>Eliminated: {recap.eliminated.join(", ")}.</>}
+      </p>
+      <ShareButton
+        text={gameWeekRecapMessage({
+          poolName,
+          gameWeekNumber: recap.gameWeekNumber,
+          survivors: recap.survivors,
+          eliminated: recap.eliminated,
+          shareUrl,
+        })}
+        title={`${poolName} — Gameweek ${recap.gameWeekNumber} recap`}
+        label="Share this gameweek's recap"
+        className="mt-4 inline-block rounded-lg bg-emerald-700 text-white font-semibold px-4 py-2 text-sm"
+      />
+    </section>
   );
 }
 
@@ -208,7 +265,7 @@ function ResultsEntry({
   busy: boolean;
   setBusy: (b: boolean) => void;
   setError: (e: string | null) => void;
-  onDone: () => void;
+  onDone: (data: { survivors: string[]; eliminated: string[] }) => void;
 }) {
   const [scores, setScores] = useState<Record<string, { home: string; away: string }>>({});
 
@@ -244,7 +301,7 @@ function ResultsEntry({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      onDone();
+      onDone({ survivors: data.survivors, eliminated: data.eliminated });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save results.");
     } finally {

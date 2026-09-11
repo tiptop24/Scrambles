@@ -136,8 +136,20 @@ export async function POST(
     prisma.gameWeek.update({ where: { id: gameWeek.id }, data: { locked: true } }),
   ]);
 
+  const nameById = new Map(alivePlayers.map((p) => [p.id, p.name]));
+  const survivors = outcomes
+    .filter((o) => !o.eliminated)
+    .map((o) => nameById.get(o.playerId) ?? "Unknown");
+  const eliminated = [
+    ...outcomes.filter((o) => o.eliminated).map((o) => nameById.get(o.playerId) ?? "Unknown"),
+    ...missingPickPlayers.map((p) => p.name),
+  ];
+
   return NextResponse.json({
     ok: true,
     eliminatedCount: eliminatedPlayerIds.size,
+    survivors,
+    eliminated,
+    remainingCount: alivePlayers.length - eliminatedPlayerIds.size,
   });
 }

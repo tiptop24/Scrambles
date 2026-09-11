@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const title = "Scrambles — Premier League Pick 'Em";
+const description =
+  "Pick one Premier League team a week. Win and survive, lose and you're out. Last one standing wins.";
+
 export const metadata: Metadata = {
-  title: "Scrambles — Premier League Pick 'Em",
-  description:
-    "Pick one Premier League team a week. Win and survive, lose and you're out. Last one standing wins.",
+  title,
+  description,
+  openGraph: { title, description, siteName: "Scrambles" },
+  twitter: { card: "summary", title, description },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
