@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// A private pool of players competing against each other, joined via inviteCode.
+model Pool {
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  players   Player[]
+  gameWeeks GameWeek[]
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  poolId    String
+  createdAt DateTime @default(now())
+
+  // Eliminated players stay visible on the standings (for the tiebreaker/history)
+  // but can no longer make new picks.
+  eliminated       Boolean @default(false)
+  eliminatedWeekNo Int?
+
+  pool  Pool   @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  picks Pick[]
+
+  @@unique([poolId, name])
+}
+
+model Team {
+  id        String @id @default(cuid())
+  name      String @unique
+  shortName String
+
+  homeFixtures Fixture[] @relation("HomeTeam")
+  awayFixtures Fixture[] @relation("AwayTeam")
+  picks        Pick[]
+}
+
+// One Premier League gameweek. Players get exactly one pick per gameweek.
+model GameWeek {
+  id       String   @id @default(cuid())
+  poolId   String
+  number   Int
+  deadline DateTime?
+  // Locked once results are processed — no further picks or edits.
+  locked   Boolean  @default(false)
+
+  pool      Pool      @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  fixtures  Fixture[]
+  picks     Pick[]
+
+  @@unique([poolId, number])
+}
+
+// SQLite has no native enum support, so fixture/pick status are plain strings.
+// Fixture.status: "SCHEDULED" | "FINAL"
+model Fixture {
+  id         String    @id @default(cuid())
+  gameWeekId String
+  homeTeamId String
+  awayTeamId String
+  kickoff    DateTime?
+  status     String    @default("SCHEDULED")
+  homeScore  Int?
+  awayScore  Int?
+
+  gameWeek GameWeek @relation(fields: [gameWeekId], references: [id], onDelete: Cascade)
+  homeTeam Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  picks    Pick[]
+
+  @@unique([gameWeekId, homeTeamId, awayTeamId])
+}
+
+// A player's single team selection for a single gameweek.
+// The (poolId via player, teamId) combination must never repeat across a
+// player's picks for the whole season — enforced in lib/gameLogic.ts.
+// Pick.result: "PENDING" | "WIN" | "DRAW" | "LOSS"
+model Pick {
+  id         String   @id @default(cuid())
+  playerId   String
+  gameWeekId String
+  teamId     String
+  fixtureId  String?
+  result     String   @default("PENDING")
+  // Goal difference for the picked team in that specific match (goalsFor - goalsAgainst).
+  // Used as the season-long tiebreaker between players still alive (or eliminated the same week).
+  goalDifference Int @default(0)
+  createdAt      DateTime @default(now())
+
+  player   Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  gameWeek GameWeek  @relation(fields: [gameWeekId], references: [id], onDelete: Cascade)
+  team     Team      @relation(fields: [teamId], references: [id])
+  fixture  Fixture?  @relation(fields: [fixtureId], references: [id])
+
+  // One pick per player per gameweek, and a team can only ever be used once per player.
+  @@unique([playerId, gameWeekId])
+  @@unique([playerId, teamId])
+}
