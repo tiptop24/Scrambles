@@ -24,9 +24,13 @@ Every moment worth bragging (or roasting) about has a one-tap share button
 - **The admin's weekly recap** — a ready-to-paste "results are in" message
   for the group chat after each gameweek locks.
 
-Pool links also carry per-pool Open Graph metadata, so a shared invite
-unfurls with the pool's own name and rules in iMessage/WhatsApp/Slack instead
-of a bare URL.
+Pool links also carry per-pool Open Graph metadata **and a generated preview
+image** (`pool/[code]/opengraph-image.tsx`, live pool name + gameweek + alive
+count), so a shared invite unfurls as a real image card in iMessage/WhatsApp/
+Slack/Discord instead of a bare URL — image-rich previews get opened far more
+than plain text ones. Set `NEXT_PUBLIC_SITE_URL` in production (see
+`.env.example`) so those images resolve to the real domain instead of
+`localhost`.
 
 ## Stack
 

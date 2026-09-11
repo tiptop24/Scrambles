@@ -5,11 +5,16 @@ const title = "Scrambles — Premier League Pick 'Em";
 const description =
   "Pick one Premier League team a week. Win and survive, lose and you're out. Last one standing wins.";
 
+// Needed to resolve absolute URLs for the generated OG images below — set
+// NEXT_PUBLIC_SITE_URL to the real deployed origin once this is live.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
   title,
   description,
+  metadataBase: new URL(siteUrl),
   openGraph: { title, description, siteName: "Scrambles" },
-  twitter: { card: "summary", title, description },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
